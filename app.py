@@ -45,20 +45,13 @@ def generate_answer_with_gpt(query: str, context: str):
         messages=[
             {
                 "role": "system",
-                "content": f"""Du bist ein intelligenter Assistent.
+                "content": """Du bist ein intelligenter Assistent.
                             Basierend auf dem untenstehenden Kontext, erstelle
                             eine kohärente und informative Antwort 
-                           auf die Frage des Nutzers."""
+                           auf die Frage des Nutzers.""",
             },
-            {
-                "role": "assistant",
-                "content": f"Kontext: {context}"
-            },
-            {
-                "role": "user",
-                "content": query
-            }
-
+            {"role": "assistant", "content": f"Kontext: {context}"},
+            {"role": "user", "content": query},
         ],
     )
 
@@ -139,7 +132,7 @@ async def vector_search(query: str):
     )
 
     context = [
-        {"file": result.payload['source_file'], "text": result.payload["text"]}
+        {"file": result.payload["source_file"], "text": result.payload["text"]}
         for result in search_result
     ]
 
