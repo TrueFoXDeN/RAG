@@ -8,6 +8,27 @@ services:
       - '6333:6333'
     volumes:
       - qdrant_storage:/qdrant/storage
+    networks:
+      - rag_network
+
+  minio:
+    image: minio/minio
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - minio_data:/data
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: Mastermind1324
+    command: server /data --console-address ":9001"
+    networks:
+      - rag_network
+
 
 volumes:
   qdrant_storage:
+  minio_data:
+
+networks:
+  rag_network:
