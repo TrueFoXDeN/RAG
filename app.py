@@ -1,3 +1,4 @@
+import os
 import uuid
 from enum import Enum
 from itertools import islice
@@ -6,8 +7,8 @@ from typing import List
 import boto3
 import nltk
 from fastapi import FastAPI
-from fastapi.encoders import jsonable_encoder
 from nltk.tokenize import sent_tokenize
+from openai import OpenAI
 from pydantic import BaseModel
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
@@ -18,6 +19,8 @@ from starlette.responses import JSONResponse
 class EmbedRequest(BaseModel):
     text: List[str]
 
+
+openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 client = QdrantClient(url="http://localhost:6333")
 
@@ -34,6 +37,33 @@ s3_client = boto3.client(
     aws_secret_access_key="0seVgUd0S6myUpd55jPMJO3Bhx8tQrrposYTgUor",
     region_name="us-east-1",
 )
+
+
+def generate_answer_with_gpt(query: str, context: str):
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": f"""Du bist ein intelligenter Assistent.
+                            Basierend auf dem untenstehenden Kontext, erstelle
+                            eine kohärente und informative Antwort 
+                           auf die Frage des Nutzers."""
+            },
+            {
+                "role": "assistant",
+                "content": f"Kontext: {context}"
+            },
+            {
+                "role": "user",
+                "content": query
+            }
+
+        ],
+    )
+
+    print(response)
+    return response.choices[0].message
 
 
 def list_text_files(bucket_name: str, prefix: str) -> List[str]:
@@ -107,7 +137,20 @@ async def vector_search(query: str):
     search_result = client.search(
         collection_name="embeddings", query_vector=query_embedding, limit=3
     )
-    return JSONResponse(content=jsonable_encoder(search_result))
+
+    context = [
+        {"file": result.payload['source_file'], "text": result.payload["text"]}
+        for result in search_result
+    ]
+
+    generator_context = " ".join([result.payload["text"] for result in search_result])
+
+    # Generiere die Antwort basierend auf dem Kontext und der Anfrage
+    answer = generate_answer_with_gpt(query, generator_context).content
+
+    # return {"query": query, "context": context, "answer": answer.content}
+    return {"query": query, "context": context, "answer": answer}
+    # return JSONResponse(content=jsonable_encoder(search_result))
 
 
 @app.post("/vector/embed")
