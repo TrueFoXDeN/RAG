@@ -25,6 +25,14 @@ services:
     networks:
       - rag_network
 
+  grobid:
+    image: grobid/grobid:0.8.0
+    ports:
+      - '8070:8070'
+      - '8071:8071'
+    init: true
+    networks:
+      - rag_network
 
 volumes:
   qdrant_storage:

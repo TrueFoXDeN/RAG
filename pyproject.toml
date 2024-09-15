@@ -1,11 +1,2 @@
 [tool.ruff.lint]
 select = ["I", "E", "F"]
-
-#[tool.ruff.isort]
-#combine-as-imports = true
-#force-single-line = false
-#include-trailing-comma = true
-#line-length = 88
-#multi-line-output = 3
-#known-first-party = ["mein_projekt"]
-#sections = ["FUTURE", "STDLIB", "THIRDPARTY", "FIRSTPARTY", "LOCALFOLDER"]
