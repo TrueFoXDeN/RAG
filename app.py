@@ -1,13 +1,16 @@
 import os
+import re
 import shutil
 import uuid
 import xml.etree.ElementTree as ET
+import unicodedata
 from enum import Enum
 from itertools import islice
 from typing import List
 
 import boto3
 import nltk
+from bs4 import BeautifulSoup
 from fastapi import FastAPI
 from grobid_client.grobid_client import GrobidClient
 from nltk.tokenize import sent_tokenize
@@ -17,7 +20,6 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, PointStruct, VectorParams
 from sentence_transformers import SentenceTransformer
 from starlette.responses import JSONResponse
-from bs4 import BeautifulSoup
 
 
 class EmbedRequest(BaseModel):
@@ -144,37 +146,47 @@ def extract_text_from_xml(xml_file):
     root = tree.getroot()
 
     # Namespace used in the XML file
-    ns = {'tei': 'http://www.tei-c.org/ns/1.0'}
+    ns = {"tei": "http://www.tei-c.org/ns/1.0"}
 
     # List to store the extracted text
     extracted_text = []
 
     # Find all div and figure elements
-    div_elements = root.findall('.//tei:div', ns)
-    figure_elements = root.findall('.//tei:figure', ns)
+    div_elements = root.findall(".//tei:div", ns)
+    # figure_elements = root.findall(".//tei:figure", ns)
 
     # Helper function to remove HTML tags from text
     def remove_html_tags(text):
         soup = BeautifulSoup(text, "html.parser")
 
         # Remove specific tags like <code>, <blockquote>, and others
-        for tag in soup.find_all(['code', 'blockquote', 'div', 'figure']):
+        for tag in soup.find_all(["code", "blockquote", "div", "figure"]):
             tag.decompose()  # Remove the tag and its contents
 
         # Return cleaned text without the specific tags
         return soup.get_text()
 
+    def normalize_text(text):
+        # Normalize the text to remove any special unicode characters
+        normalized_text = unicodedata.normalize('NFKC', text)
+        return normalized_text
+
+    def remove_multiple_linebreaks(text):
+        text = normalize_text(text)
+        # Replace multiple line breaks (\n) with a single one
+        return re.sub(r"(\r?\n\s*){2,}", "\n\n", text)
+
+    def remove_leading_spaces(text):
+        # Remove leading spaces or tabs at the beginning of each line
+        return "\n".join([line.lstrip() for line in text.splitlines()])
+
     # Extract text from div elements
     for div in div_elements:
         # Convert element to string and remove HTML tags
-        div_text = remove_html_tags(ET.tostring(div, encoding='unicode', method='xml'))
+        div_text = remove_html_tags(ET.tostring(div, encoding="unicode", method="xml"))
+        div_text = remove_multiple_linebreaks(div_text)
+        # div_text = remove_leading_spaces(div_text)
         extracted_text.append(div_text)
-
-    # Extract text from figure elements (if needed)
-    for figure in figure_elements:
-        # Convert element to string and remove HTML tags
-        figure_text = remove_html_tags(ET.tostring(figure, encoding='unicode', method='xml'))
-        extracted_text.append(figure_text)
 
     # Return all extracted and cleaned text
     return extracted_text
@@ -218,10 +230,12 @@ async def ingest_pdf():
 
     for file in os.listdir(output_folder_path):
         filename = os.fsdecode(file)
-        res = extract_text_from_xml(f'{output_folder_path}/{filename}')
+        res = extract_text_from_xml(f"{output_folder_path}/{filename}")
         text = " ".join(result for result in res)
         filename = filename.replace(".grobid.tei.xml", "")
-        with open(f'{output_txt_folder_path}/{filename}.txt', 'w', encoding='utf-8') as f:
+        with open(
+            f"{output_txt_folder_path}/{filename}.txt", "w", encoding="utf-8"
+        ) as f:
             f.write(text)
 
     return JSONResponse({"success": True, "ingested": len(files)})
