@@ -50,6 +50,8 @@ services:
     depends_on:
       - grobid
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - rag_network
 
 volumes:
   qdrant_storage:
