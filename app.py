@@ -41,8 +41,10 @@ grobid_client = GrobidClient(
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True})
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-nltk.download("punkt", download_dir="./.venv/nltk_data")
-nltk.download("punkt_tab", download_dir="./.venv/nltk_data")
+os.environ['NLTK_DATA'] = './nltk/nltk_data'
+nltk.data.path.append('./nltk/nltk_data')
+nltk.download("punkt", download_dir="./nltk/nltk_data")
+nltk.download("punkt_tab", download_dir="./nltk/nltk_data")
 
 s3_client = boto3.client(
     "s3",
