@@ -33,6 +33,23 @@ services:
     init: true
     networks:
       - rag_network
+  api:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      - OPENAI_API_KEY=123
+      - S3_KEY_ID=123
+      - S3_ACCESS_KEY=123
+      - S3_URL=minio
+      - QDRANT_URL=qdrant
+      - GROBID_URL=grobid
+    depends_on:
+      - grobid
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 volumes:
   qdrant_storage:

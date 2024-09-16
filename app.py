@@ -26,21 +26,23 @@ class EmbedRequest(BaseModel):
     text: List[str]
 
 
+s3_url = os.environ["S3_URL"]
+qdrant_url = os.environ["QDRANT_URL"]
+grobid_url = os.environ["GROBID_URL"]
+
 openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
-
-qdrant_client = QdrantClient(url="http://localhost:6333")
-
-grobid_client = GrobidClient(config_path="./grobid_config.json")
+qdrant_client = QdrantClient(url=f"http://{qdrant_url}:6333")
+grobid_client = GrobidClient(grobid_server=f"http://{grobid_url}:8070", config_path="./grobid_config.json")
 
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True})
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-nltk.download("punkt", download_dir="./venv/nltk_data")
-nltk.download("punkt_tab", download_dir="./venv/nltk_data")
+nltk.download("punkt", download_dir="./.venv/nltk_data")
+nltk.download("punkt_tab", download_dir="./.venv/nltk_data")
 
 s3_client = boto3.client(
     "s3",
-    endpoint_url="http://localhost:9000",
+    endpoint_url=f"http://{s3_url}:9000",
     aws_access_key_id=os.environ["S3_KEY_ID"],
     aws_secret_access_key=os.environ["S3_ACCESS_KEY"],
     region_name="us-east-1",
