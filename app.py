@@ -1,9 +1,9 @@
 import os
 import re
 import shutil
+import unicodedata
 import uuid
 import xml.etree.ElementTree as ET
-import unicodedata
 from enum import Enum
 from itertools import islice
 from typing import List
@@ -32,7 +32,11 @@ grobid_url = os.environ["GROBID_URL"]
 
 openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 qdrant_client = QdrantClient(url=f"http://{qdrant_url}:6333")
-grobid_client = GrobidClient(grobid_server=f"http://{grobid_url}:8070", config_path="./grobid_config.json")
+grobid_client = GrobidClient(
+    grobid_server=f"http://{grobid_url}:8070",
+    coordinates=["persName", "figure", "ref", "biblStruct", "formula", "s"],
+)
+
 
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True})
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -171,7 +175,7 @@ def extract_text_from_xml(xml_file):
 
     def normalize_text(text):
         # Normalize the text to remove any special unicode characters
-        normalized_text = unicodedata.normalize('NFKC', text)
+        normalized_text = unicodedata.normalize("NFKC", text)
         return normalized_text
 
     def remove_multiple_linebreaks(text):
@@ -237,7 +241,7 @@ async def ingest_pdf():
         text = "".join(result for result in res)
         filename = filename.replace(".grobid.tei.xml", "")
         with open(
-                f"{output_txt_folder_path}/{filename}.txt", "w", encoding="utf-8"
+            f"{output_txt_folder_path}/{filename}.txt", "w", encoding="utf-8"
         ) as f:
             f.write(text)
 
