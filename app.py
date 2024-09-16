@@ -35,14 +35,14 @@ grobid_client = GrobidClient(config_path="./grobid_config.json")
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True})
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
-nltk.download("punkt", download_dir="./.venv")
-nltk.download("punkt_tab", download_dir="./.venv")
+nltk.download("punkt", download_dir="./venv/nltk_data")
+nltk.download("punkt_tab", download_dir="./venv/nltk_data")
 
 s3_client = boto3.client(
     "s3",
     endpoint_url="http://localhost:9000",
-    aws_access_key_id="JmdUeDDSoACtwAbJgjhj",
-    aws_secret_access_key="0seVgUd0S6myUpd55jPMJO3Bhx8tQrrposYTgUor",
+    aws_access_key_id=os.environ["S3_KEY_ID"],
+    aws_secret_access_key=os.environ["S3_ACCESS_KEY"],
     region_name="us-east-1",
 )
 
@@ -115,29 +115,29 @@ class LanguageEnum(str, Enum):
     german = "german"
 
 
-@app.post("/vector/ingest")
-async def ingest_vectors(language: LanguageEnum):
-    bucket_name = "rag"  # Replace with your bucket name
-    prefix = ""
-    text_files = list_files(bucket_name, prefix)
-    print(text_files)
-    points = []
-    for key in text_files:
-        content = read_text_file(bucket_name, key)
-        sentences = sent_tokenize(content, language=language.value)
-        embeddings = model.encode(sentences)
-        for sentence, vector in zip(sentences, embeddings):
-            point = PointStruct(
-                id=str(uuid.uuid4()),
-                vector=vector.tolist(),
-                payload={"text": sentence, "source_file": key},
-            )
-            points.append(point)
-    # Insert points in batches
-    batch_size = 1000
-    for batch in chunks(points, batch_size):
-        qdrant_client.upsert(collection_name="embeddings", points=batch)
-    return JSONResponse({"success": True, "ingested": len(points)})
+# @app.post("/vector/ingest")
+# async def ingest_vectors(language: LanguageEnum):
+#     bucket_name = "rag"  # Replace with your bucket name
+#     prefix = ""
+#     text_files = list_files(bucket_name, prefix)
+#     print(text_files)
+#     points = []
+#     for key in text_files:
+#         content = read_text_file(bucket_name, key)
+#         sentences = sent_tokenize(content, language=language.value)
+#         embeddings = model.encode(sentences)
+#         for sentence, vector in zip(sentences, embeddings):
+#             point = PointStruct(
+#                 id=str(uuid.uuid4()),
+#                 vector=vector.tolist(),
+#                 payload={"text": sentence, "source_file": key},
+#             )
+#             points.append(point)
+#     # Insert points in batches
+#     batch_size = 1000
+#     for batch in chunks(points, batch_size):
+#         qdrant_client.upsert(collection_name="embeddings", points=batch)
+#     return JSONResponse({"success": True, "ingested": len(points)})
 
 
 def extract_text_from_xml(xml_file):
@@ -153,6 +153,7 @@ def extract_text_from_xml(xml_file):
 
     # Find all div and figure elements
     div_elements = root.findall(".//tei:div", ns)
+
     # figure_elements = root.findall(".//tei:figure", ns)
 
     # Helper function to remove HTML tags from text
@@ -227,22 +228,47 @@ async def ingest_pdf():
     )
 
     shutil.rmtree(input_folder_path)
-
+    points = []
     for file in os.listdir(output_folder_path):
         filename = os.fsdecode(file)
         res = extract_text_from_xml(f"{output_folder_path}/{filename}")
-        text = " ".join(result for result in res)
+        text = "".join(result for result in res)
         filename = filename.replace(".grobid.tei.xml", "")
         with open(
-            f"{output_txt_folder_path}/{filename}.txt", "w", encoding="utf-8"
+                f"{output_txt_folder_path}/{filename}.txt", "w", encoding="utf-8"
         ) as f:
             f.write(text)
+
+        # content = read_text_file(bucket_name, key)
+        sentences = sent_tokenize(text)
+        embeddings = model.encode(sentences)
+        for sentence, vector in zip(sentences, embeddings):
+            point = PointStruct(
+                id=str(uuid.uuid4()),
+                vector=vector.tolist(),
+                payload={"text": sentence, "source_file": filename},
+            )
+            points.append(point)
+    # Insert points in batches
+    batch_size = 1000
+    for batch in chunks(points, batch_size):
+        qdrant_client.upsert(collection_name="embeddings", points=batch)
 
     return JSONResponse({"success": True, "ingested": len(files)})
 
 
-@app.post("/vector/setup")
+@app.post("/db/setup")
 def setup_db():
+    qdrant_client.create_collection(
+        collection_name="embeddings",
+        vectors_config=VectorParams(size=384, distance=Distance.COSINE),
+    )
+    return JSONResponse({"success": True})
+
+
+@app.delete("/db/clear")
+def clear_collection():
+    qdrant_client.delete_collection(collection_name="embeddings")
     qdrant_client.create_collection(
         collection_name="embeddings",
         vectors_config=VectorParams(size=384, distance=Distance.COSINE),
