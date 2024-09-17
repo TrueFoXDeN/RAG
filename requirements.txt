@@ -4,10 +4,8 @@ uvicorn == 0.30.6
 sentence-transformers == 3.1.0
 pydantic == 2.9.1
 boto3 == 1.35.19
-nltk == 3.9.1
 ruff == 0.6.5
 openai == 1.45.0
-grobid-client-python == 0.0.8
 bs4 == 0.0.2
 pymupdf == 1.24.10
 semantic-chunkers == 0.0.9
