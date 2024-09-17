@@ -9,3 +9,5 @@ ruff == 0.6.5
 openai == 1.45.0
 grobid-client-python == 0.0.8
 bs4 == 0.0.2
+pymupdf == 1.24.10
+semantic-chunkers == 0.0.9
