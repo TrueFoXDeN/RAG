@@ -2,7 +2,7 @@ import os
 
 from semantic_router.encoders import HuggingFaceEncoder
 import pymupdf
-from semantic_chunkers import StatisticalChunker, ConsecutiveChunker, CumulativeChunker
+from semantic_chunkers import StatisticalChunker
 encoder = HuggingFaceEncoder()
 
 
@@ -17,25 +17,23 @@ def load_pdf(path):
 def statistical_chunking(pages):
     chunker = StatisticalChunker(encoder=encoder)
     chunks = chunker(docs=pages)
-    for chunk in chunks:
-        print(chunk)
     return chunks
 
 
-def consecutive_chunking(pages):
-    chunker = ConsecutiveChunker(encoder=encoder, score_threshold=0.1)
-    chunks = chunker(docs=pages)
-    for chunk in chunks:
-        print(chunk)
-    return chunks
-
-
-def cumulative_chunking(pages):
-    chunker = CumulativeChunker(encoder=encoder, score_threshold=0.3)
-    chunks = chunker(docs=pages)
-    for chunk in chunks:
-        print(chunk)
-    return chunks
+# def consecutive_chunking(pages):
+#     chunker = ConsecutiveChunker(encoder=encoder, score_threshold=0.1)
+#     chunks = chunker(docs=pages)
+#     for chunk in chunks:
+#         print(chunk)
+#     return chunks
+#
+#
+# def cumulative_chunking(pages):
+#     chunker = CumulativeChunker(encoder=encoder, score_threshold=0.3)
+#     chunks = chunker(docs=pages)
+#     for chunk in chunks:
+#         print(chunk)
+#     return chunks
 
 
 def sanitize_chunks(chunks):
@@ -46,7 +44,7 @@ def sanitize_chunks(chunks):
             merged_text = ' '.join(chunk.splits)
             sanitized_page_chunk.append(merged_text)
         sanitized_chunks.append(sanitized_page_chunk)
-    print(sanitized_chunks)
+    # print(sanitized_chunks)
     return sanitized_chunks
 
 

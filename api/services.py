@@ -8,10 +8,10 @@ from api import database, embedding, generate, retrieve, extract, chunking
 
 def query_service(query):
     query_embedding = embedding.embed(query)
-    search_result = database.search(query_embedding, 3)
+    search_result = database.search(query_embedding, 15)
 
     context = [
-        {"file": result.payload["source_file"], "text": result.payload["text"]}
+        {"file": result.payload["file"], "text": result.payload["text"], "page": result.payload["page"]}
         for result in search_result
     ]
 
