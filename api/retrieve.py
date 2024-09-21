@@ -1,5 +1,4 @@
 import os
-from typing import List
 
 import boto3
 
@@ -64,10 +63,10 @@ def download_bucket(name):
                 response = s3_client.get_object(Bucket=name, Key=key)
                 pdf_content = response["Body"].read()
 
-                if not os.path.exists('bucket_content'):
-                    os.makedirs('bucket_content')
+                if not os.path.exists("bucket_content"):
+                    os.makedirs("bucket_content")
 
-                file_path = os.path.join('bucket_content', os.path.basename(key))
+                file_path = os.path.join("bucket_content", os.path.basename(key))
                 with open(file_path, "wb") as pdf_file:
                     pdf_file.write(pdf_content)
 

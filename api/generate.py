@@ -1,4 +1,3 @@
-import json
 import os
 
 from openai import OpenAI
@@ -23,11 +22,10 @@ def gpt(query: str, context: str):
             {"role": "assistant", "content": f"Kontext: {context}"},
             {"role": "user", "content": query},
         ],
-        stream=True
+        stream=True,
     )
 
     for chunk in response:
         content = chunk.choices[0].delta.content
         if content:
             yield content
-

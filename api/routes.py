@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from api.services import (
+    context_service,
     db_clear_service,
     db_setup_service,
     ingest_service,
@@ -19,6 +20,11 @@ async def ingest_route():
 @router.get("/query")
 async def query_route(query: str):
     return StreamingResponse(query_service(query), media_type="text/event-stream")
+
+
+@router.get("/context")
+async def context_route(query: str):
+    return context_service(query)
 
 
 @router.post("/db/setup")

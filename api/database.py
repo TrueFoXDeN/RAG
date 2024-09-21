@@ -1,8 +1,7 @@
 import os
 
 from qdrant_client import QdrantClient, models
-from qdrant_client.conversions.common_types import Distance, VectorParams
-
+from qdrant_client.conversions.common_types import VectorParams
 
 qdrant_url = os.environ["QDRANT_URL"]
 qdrant_client = QdrantClient(url=f"http://{qdrant_url}:6333")

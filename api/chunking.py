@@ -1,8 +1,8 @@
-import os
 
-from semantic_router.encoders import HuggingFaceEncoder
 import pymupdf
 from semantic_chunkers import StatisticalChunker
+from semantic_router.encoders import HuggingFaceEncoder
+
 encoder = HuggingFaceEncoder()
 
 
@@ -41,7 +41,7 @@ def sanitize_chunks(chunks):
     for page_chunk in chunks:
         sanitized_page_chunk = []
         for chunk in page_chunk:
-            merged_text = ' '.join(chunk.splits)
+            merged_text = " ".join(chunk.splits)
             sanitized_page_chunk.append(merged_text)
         sanitized_chunks.append(sanitized_page_chunk)
     # print(sanitized_chunks)
