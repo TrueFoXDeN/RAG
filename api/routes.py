@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
 from api.services import (
     db_clear_service,
@@ -15,9 +16,9 @@ async def ingest_route():
     return ingest_service()
 
 
-@router.post("/query")
+@router.get("/query")
 async def query_route(query: str):
-    return query_service(query)
+    return StreamingResponse(query_service(query), media_type="text/event-stream")
 
 
 @router.post("/db/setup")

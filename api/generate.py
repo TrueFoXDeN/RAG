@@ -1,3 +1,4 @@
+import json
 import os
 
 from openai import OpenAI
@@ -6,6 +7,9 @@ openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 def gpt(query: str, context: str):
+    # yield f"{json.dumps({'context': context})}\n\n"
+    # yield f"[CONTEXT-END]\n\n"
+
     response = openai_client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -19,6 +23,11 @@ def gpt(query: str, context: str):
             {"role": "assistant", "content": f"Kontext: {context}"},
             {"role": "user", "content": query},
         ],
+        stream=True
     )
 
-    return response.choices[0].message
+    for chunk in response:
+        content = chunk.choices[0].delta.content
+        if content:
+            yield content
+

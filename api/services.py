@@ -1,3 +1,4 @@
+import json
 import uuid
 
 from qdrant_client.conversions.common_types import PointStruct
@@ -8,7 +9,7 @@ from api import database, embedding, generate, retrieve, extract, chunking
 
 def query_service(query):
     query_embedding = embedding.embed(query)
-    search_result = database.search(query_embedding, 15)
+    search_result = database.search(query_embedding, 3)
 
     context = [
         {"file": result.payload["file"], "text": result.payload["text"], "page": result.payload["page"]}
@@ -17,9 +18,16 @@ def query_service(query):
 
     generator_context = " ".join([result.payload["text"] for result in search_result])
 
-    answer = generate.gpt(query, generator_context).content
+    yield f"{json.dumps({'context': context})}\n\n"
+    yield f"[CONTEXT-END]\n\n"
 
-    return {"query": query, "context": context, "answer": answer}
+    for chunk in generate.gpt(query, generator_context):
+        yield f"{chunk}\n\n"
+    yield "[DONE]\n\n"
+
+    # answer = generate.gpt(query, generator_context).content
+    #
+    # return {"query": query, "context": context, "answer": answer}
 
 
 def ingest_service():
