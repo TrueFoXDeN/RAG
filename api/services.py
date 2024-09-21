@@ -34,9 +34,9 @@ def query_service(query):
     # return {"query": query, "context": context, "answer": answer}
 
 
-def context_service(query):
+def context_service(query, limit):
     query_embedding = embedding.embed(query)
-    search_result = database.search(query_embedding, 3)
+    search_result = database.search(query_embedding, limit)
 
     context = [
         {

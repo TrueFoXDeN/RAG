@@ -23,8 +23,8 @@ async def query_route(query: str):
 
 
 @router.get("/context")
-async def context_route(query: str):
-    return context_service(query)
+async def context_route(query: str, limit: int = 3):
+    return context_service(query, limit)
 
 
 @router.post("/db/setup")
