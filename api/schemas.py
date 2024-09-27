@@ -11,3 +11,7 @@ class LanguageEnum(str, Enum):
 
 class EmbedRequest(BaseModel):
     text: List[str]
+
+
+class QueryRequest(BaseModel):
+    query: str

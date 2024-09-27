@@ -6,9 +6,6 @@ openai_client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
 
 def gpt(query: str, context: str):
-    # yield f"{json.dumps({'context': context})}\n\n"
-    # yield f"[CONTEXT-END]\n\n"
-
     response = openai_client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[

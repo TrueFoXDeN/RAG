@@ -1,4 +1,3 @@
-
 import pymupdf
 from semantic_chunkers import StatisticalChunker
 from semantic_router.encoders import HuggingFaceEncoder

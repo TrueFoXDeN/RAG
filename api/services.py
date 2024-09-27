@@ -1,4 +1,5 @@
 import json
+import logging
 import uuid
 
 from qdrant_client.conversions.common_types import PointStruct
@@ -20,14 +21,17 @@ def query_service(query):
         for result in search_result
     ]
 
+    logging.debug(json.dumps(context, ensure_ascii=False))
     generator_context = " ".join([result.payload["text"] for result in search_result])
 
-    yield f"{json.dumps({'context': context})}\n\n"
-    yield "[CONTEXT-END]\n\n"
+    yield f"data: {json.dumps({'context': context}, ensure_ascii=False)}\n\n"
+    yield "data: [CONTEXT-END]\n\n"
 
     for chunk in generate.gpt(query, generator_context):
-        yield f"{chunk}\n\n"
-    yield "[DONE]\n\n"
+        yield f"data: {chunk}\n\n"
+
+    logging.debug("done")
+    yield "data: [DONE]\n\n"
 
     # answer = generate.gpt(query, generator_context).content
     #
