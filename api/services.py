@@ -1,6 +1,7 @@
 import json
 import logging
 import uuid
+from typing import Generator
 
 from qdrant_client.conversions.common_types import PointStruct
 from starlette.responses import JSONResponse
@@ -8,7 +9,7 @@ from starlette.responses import JSONResponse
 from api import chunking, database, embedding, extract, generate, retrieve
 
 
-def query_service(query):
+def query_service(query) -> Generator[str, None, None]:
     query_embedding = embedding.embed(query)
     search_result = database.search(query_embedding, 3)
 
@@ -24,18 +25,17 @@ def query_service(query):
     logging.debug(json.dumps(context, ensure_ascii=False))
     generator_context = " ".join([result.payload["text"] for result in search_result])
 
-    yield f"data: {json.dumps({'context': context}, ensure_ascii=False)}\n\n"
-    yield "data: [CONTEXT-END]\n\n"
+    eol = "\n\n"
+
+    yield f"data: {json.dumps({'context': context}, ensure_ascii=False)}{eol}"
+    yield f"data: [CONTEXT-END]{eol}"
 
     for chunk in generate.gpt(query, generator_context):
-        yield f"data: {chunk}\n\n"
+        yield f"data: {chunk.replace('\n', '[NEWLINE]')}{eol}"
 
     logging.debug("done")
-    yield "data: [DONE]\n\n"
-
-    # answer = generate.gpt(query, generator_context).content
-    #
-    # return {"query": query, "context": context, "answer": answer}
+    yield f"data: [DONE]{eol}"
+    yield f": stream closed{eol}"
 
 
 def context_service(query, limit):
