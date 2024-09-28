@@ -41,7 +41,7 @@ services:
   frontend:
     build: ../RAGFrontend/.
     ports :
-      - "80:4300"
+      - "4300:80"
     networks:
       - rag_network
 
