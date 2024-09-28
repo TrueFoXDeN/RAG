@@ -25,26 +25,25 @@ services:
     networks:
       - rag_network
 
-#  grobid:
-#    image: grobid/grobid:0.8.0
-#    ports:
-#      - '8070:8070'
-#      - '8071:8071'
-#    init: true
-#    networks:
-#      - rag_network
-#  api:
-#    build: .
-#    container_name: fastapi_app
-#    ports:
-#      - "8000:8000"
-#    volumes:
-#      - .:/app
-#    env_file:
-#      - .env
-#    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-#    networks:
-#      - rag_network
+  api:
+    build: .
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    command: uvicorn app:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - rag_network
+
+  frontend:
+    build: ../RAGFrontend/.
+    ports :
+      - "80:4300"
+    networks:
+      - rag_network
 
 volumes:
   qdrant_storage:
