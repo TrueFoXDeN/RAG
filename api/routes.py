@@ -13,6 +13,11 @@ from api.services import (
 router = APIRouter()
 
 
+@router.get("/", tags=["Management"])
+async def health_route():
+    return JSONResponse({"status": "running"})
+
+
 @router.get("/health", tags=["Management"])
 async def health_route():
     return JSONResponse({"status": "healthy"})
