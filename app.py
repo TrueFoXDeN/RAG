@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from api import routes
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 app = FastAPI(swagger_ui_parameters={"tryItOutEnabled": True})
 
@@ -13,7 +13,7 @@ origins = [
     "http://localhost",
     "http://localhost:4200",
     "http://192.168.140.22:4300",
-    "http://192.168.140.22"
+    "http://192.168.140.22",
 ]
 app.add_middleware(
     CORSMiddleware,

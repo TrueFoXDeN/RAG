@@ -2,9 +2,11 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from starlette.responses import JSONResponse
 
+from api.schemas import ChatRequest
 from api.services import (
     context_service,
     db_clear_service,
+    db_save_chat_service,
     db_setup_service,
     ingest_service,
     query_service,
@@ -14,7 +16,7 @@ router = APIRouter()
 
 
 @router.get("/", tags=["Management"])
-async def health_route():
+async def root():
     return JSONResponse({"status": "running"})
 
 
@@ -46,3 +48,8 @@ def db_setup_route():
 @router.delete("/db/clear", tags=["Database"])
 def db_clear_route():
     return db_clear_service()
+
+
+@router.post("/db/chat", tags=["Database"])
+def db_save_chat_route(messages: ChatRequest):
+    return db_save_chat_service(messages)
