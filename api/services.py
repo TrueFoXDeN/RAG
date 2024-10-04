@@ -15,7 +15,7 @@ from api import (
     generate,
     retrieve,
 )
-from api.schemas import ChatRequest
+from api.schemas import ChatCollectionResponse, ChatRequest, MessageRequest
 
 
 def query_service(query) -> Generator[str, None, None]:
@@ -97,6 +97,23 @@ def db_clear_service():
     return JSONResponse({"success": True})
 
 
+def db_get_all_chats_service():
+    res = database_chats.get_all_chats()
+    print(res)
+    return ChatCollectionResponse.model_validate({"chats": res})
+
+
+def db_get_chat_service(chat_id):
+    res = database_chats.get_chat(chat_id)
+    del res["_id"]
+    return ChatRequest.model_validate(res)
+
+
 def db_save_chat_service(messages: ChatRequest):
     database_chats.save_chat(messages)
+    return JSONResponse({"success": True})
+
+
+def db_save_message_service(message: MessageRequest):
+    database_chats.save_message(message)
     return JSONResponse({"success": True})

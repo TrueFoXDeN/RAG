@@ -1,3 +1,4 @@
+from datetime import datetime
 from enum import Enum
 from typing import List
 
@@ -39,4 +40,19 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     chat_id: str
+    summary: str
     messages: List[Message]
+
+
+class MessageRequest(Message):
+    chat_id: str
+
+
+class ChatResponse(BaseModel):
+    chat_id: str
+    summary: str
+    created_on: datetime
+
+
+class ChatCollectionResponse(BaseModel):
+    chats: List[ChatResponse]
