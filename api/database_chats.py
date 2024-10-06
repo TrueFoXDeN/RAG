@@ -16,12 +16,11 @@ collection = database["chats"]
 
 
 def save_chat(messages: ChatRequest):
-    collection.update_one(
-        {"chat_id": messages.chat_id},
+    collection.insert_one(
         {
-            "$set": messages.dict(),
-            "$setOnInsert": {"created_on": datetime.now(timezone.utc)},
-        },
+            **messages.dict(),
+            "created_on": datetime.now(timezone.utc),
+        }
     )
 
 
@@ -35,7 +34,7 @@ def save_message(message: MessageRequest):
 
 
 def get_chat(chat_id):
-    return collection.find_one({"chat_id": chat_id})
+    return collection.find_one({"chat_id": chat_id}, {"_id": 0})
 
 
 def get_all_chats():
@@ -48,7 +47,7 @@ def get_all_chats():
             "_id": 0,
         },  # Nur diese Felder zurückgeben, _id ausschließen
     ).sort(
-        "created_on", 1
+        "created_on", -1
     )  # Sortierung nach created_on, 1 für aufsteigend, -1 für absteigend
 
     return list(chats)
