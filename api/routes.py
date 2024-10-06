@@ -53,7 +53,7 @@ def db_clear_route():
     return db_clear_service()
 
 
-@router.get("/db/chat", tags=["Database"], operation_id="get_chat")
+@router.get("/db/chat", tags=["Database"], operation_id="get_chats")
 def db_get_chat_route() -> ChatCollectionResponse:
     return db_get_all_chats_service()
 

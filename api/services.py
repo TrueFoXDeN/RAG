@@ -99,13 +99,11 @@ def db_clear_service():
 
 def db_get_all_chats_service():
     res = database_chats.get_all_chats()
-    print(res)
     return ChatCollectionResponse.model_validate({"chats": res})
 
 
 def db_get_chat_service(chat_id):
     res = database_chats.get_chat(chat_id)
-    del res["_id"]
     return ChatRequest.model_validate(res)
 
 
